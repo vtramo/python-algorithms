@@ -1,5 +1,6 @@
 from data import product_data
 from pprint import pprint
+from sys import getsizeof
 
 
 def build_report():
@@ -21,7 +22,7 @@ def build_report():
     report.sort(key=lambda l: l[1])
     report[0:0] = [['SKU', 'description', 'current_sales']]
 
-    build_second_report(report)
+    return build_second_report(report)
 
 
 def build_second_report(report):
@@ -31,24 +32,60 @@ def build_second_report(report):
     description_index = report[0].index('description')
 
     del report[0]
+    del product_data[0]
+    report.sort(reverse=True, key=lambda l: l[-1])
 
     def build_row_report(row_report, row_data):
         return [row_report[sku_index]] + \
-               [row_report[description_index]] + \
-               [row_data[margin_index]] + \
-               [row_report[current_sales_index]]
+            [row_report[description_index]] + \
+            [row_data[margin_index]] + \
+            [row_report[current_sales_index]]
 
-    new_report = [build_row_report(report[i], row_data)
-                  for i, row_data in enumerate(product_data[1:])
-                  if report[i][current_sales_index] > 1000000]
+    new_report = (
+        build_row_report(report[i], row_data)
+        for i, row_data in enumerate(product_data)
+        if report[i][current_sales_index] > 1000000
+    )
 
-    report.sort(reverse=True, key=lambda l: l[-1])
-    new_report[0:0] = [['SKU', 'description', 'margin', 'current_sales']]
-    pprint(report)
+    for row in new_report:
+        pprint(row)
+
+    # for experimental purposes
+    return [
+        build_row_report(report[i], row_data)
+        for i, row_data in enumerate(product_data)
+        if report[i][current_sales_index] > 1000000
+    ]
+
+
+def count_bytes_collection(c):
+    return sum([getsizeof(x) for x in c])
 
 
 def main():
-    build_report()
+    report = build_report()
+    print(f'getsizeof(report): {getsizeof(report)} | getsizeof(product_data): {getsizeof(product_data)}')
+
+    bytes_shallow_content_report = sum([getsizeof(x) for x in report])
+    bytes_shallow_content_product_data = sum([getsizeof(x) for x in report])
+    bytes_deep_content_report = sum(
+        [count_bytes_collection(x) for x in report]) + bytes_shallow_content_report + getsizeof(report)
+    bytes_deep_content_product_data = sum(
+        [count_bytes_collection(x) for x in product_data]) + bytes_shallow_content_product_data + getsizeof(
+        product_data)
+
+    print(f'bytes_deep_content_report: {bytes_deep_content_report} | bytes_deep_content_product_data: {bytes_deep_content_product_data}')
+    print(f'bytes_shallow_content_report: {bytes_shallow_content_report} | bytes_shallow_content_product_data: {bytes_shallow_content_product_data}')
+
+    copy_report = report[:]
+    is_not_a_copy = [id(x) == id(report[i]) for i, x in enumerate(copy_report)]
+    have_all_same_id = sum((1 for x in is_not_a_copy if x)) == len(copy_report)
+    print(have_all_same_id)
+
+    row_copy_report = report[1][:]
+    is_not_a_copy = [id(x) == id(report[1][i]) for i, x in enumerate(row_copy_report)]
+    have_all_same_id = sum((1 for x in is_not_a_copy if x)) == len(row_copy_report)
+    print(have_all_same_id)
 
 
 if __name__ == "__main__":
