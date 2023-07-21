@@ -1,37 +1,8 @@
 from __future__ import annotations
 
+from graph import Graph
 from dataclasses import dataclass, field
-from typing import TypeVar, Generic
 from queue import PriorityQueue
-
-T = TypeVar("T")
-
-
-class Graph(Generic[T]):
-
-    def __init__(self):
-        self.__adj: dict[T, list[T]] = {}
-        self.__cost: dict[tuple[T, T], int] = {}
-
-    def add_node(self, node: T) -> None:
-        if node in self.__adj:
-            raise ValueError("This node is already present!")
-        self.__adj[node] = []
-
-    def add_edge(self, a_node: T, b_node: T, cost: int = 0) -> None:
-        a_adj = self.__adj[a_node]
-        a_adj.append(b_node)
-        self.__cost[(a_node, b_node)] = cost
-
-    def add_bidirectional_edge(self, a_node: T, b_node: T, cost: int = 0) -> None:
-        self.add_edge(a_node, b_node, cost)
-        self.add_edge(b_node, a_node, cost)
-
-    def adj(self, node: T) -> list[tuple[T, int]]:
-        return self.__adj[node]
-
-    def edge_cost(self, a_node: T, b_node: T) -> int:
-        return self.__cost[(a_node, b_node)]
 
 
 @dataclass(slots=True, order=True)
