@@ -42,9 +42,9 @@ def build_second_report(report):
             [row_report[current_sales_index]]
 
     new_report = (
-        build_row_report(report[i], row_data)
-        for i, row_data in enumerate(product_data)
-        if report[i][current_sales_index] > 1000000
+        build_row_report(row_report, row_data)
+        for row_report, row_data in zip(report, product_data)
+        if row_report[current_sales_index] > 1000000
     )
 
     for row in new_report:
@@ -52,9 +52,9 @@ def build_second_report(report):
 
     # for experimental purposes
     return [
-        build_row_report(report[i], row_data)
-        for i, row_data in enumerate(product_data)
-        if report[i][current_sales_index] > 1000000
+        build_row_report(row_report, row_data)
+        for row_report, row_data in zip(report, product_data)
+        if row_report[current_sales_index] > 1000000
     ]
 
 
