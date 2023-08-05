@@ -1,19 +1,19 @@
-from abc import ABCMeta, abstractmethod
 from csp_components import CSP, Variable, Assignment
-from csp_problems import map_colouring_problem, knights_chessboard_problem
+from csp_problems import knights_chessboard_problem
+
 from infereces import Inference, ArcConsistencyInference, ForwardChecking, MaintainingArcConsistency
+from value_selectors import (
+    ValueOrderHeuristic,
+    LeastConstrainingValueOrderingHeuristic,
+    StaticValueOrderingHeuristic,
+    RandomValueOrderingHeuristic
+)
 from var_selectors import (
     VarOrderingHeuristic,
     MRVVarOrderingHeuristic,
     StaticVarOrderingHeuristic,
     RandomVarOrderingHeuristics,
     DegreeVarOrderingHeuristic
-)
-from value_selectors import (
-    ValueOrderHeuristic,
-    LeastConstrainingValueOrderingHeuristic,
-    StaticValueOrderingHeuristic,
-    RandomValueOrderingHeuristic
 )
 
 

@@ -2,32 +2,68 @@
 This package contains an implementation of the **Backtracking Algorithm** to solve **Constraint Satisfaction Problems (CSP)**.
 
 ## Usage Example
+
 ```python
-from backtracking.backtracking_search import backtracking_search
-from backtracking.var_selectors import (
+from csp_components import CSP, Variable, Assignment
+from csp_problems import knights_chessboard_problem
+
+from infereces import Inference, ArcConsistencyInference, ForwardChecking, MaintainingArcConsistency
+from value_selectors import (
+    ValueOrderHeuristic,
+    LeastConstrainingValueOrderingHeuristic,
+    StaticValueOrderingHeuristic,
+    RandomValueOrderingHeuristic
+)
+from var_selectors import (
     VarOrderingHeuristic,
     MRVVarOrderingHeuristic,
     StaticVarOrderingHeuristic,
     RandomVarOrderingHeuristics,
     DegreeVarOrderingHeuristic
 )
-from backtracking.value_selectors import (
-    ValueOrderHeuristic,
-    LeastConstrainingValueOrderingHeuristic,
-    StaticValueOrderingHeuristic,
-    RandomValueOrderingHeuristic
-)
-from backtracking.infereces import Inference, ArcConsistencyInference
-from csp_components import CSP, Variable, Assignment
-from csp_problems import map_colouring_problem, knights_chessboard_problem
+
+
+def backtracking_search(csp: CSP[Variable[any]],
+                        inference: Inference,
+                        var_ordering_heuristic: VarOrderingHeuristic,
+                        value_ordering_heuristic: ValueOrderHeuristic) -> Assignment[any]:
+    def backtrack(assignment: Assignment) -> dict[Variable[any], any] | bool:
+        print(f'- {assignment}')
+
+        if len(assignment) == len(csp):
+            return assignment
+
+        var = var_ordering_heuristic(csp, assignment)
+        values = value_ordering_heuristic(csp, var, assignment)
+        for step, value in enumerate(start=1, iterable=values):
+            if assignment.is_consistent_value(var, value):
+                assignment.add(var, value)
+                backup_var_domains = csp.backup_var_domains()
+
+                inferences = inference(csp, var, assignment)
+                if inferences is not False:
+                    result = backtrack(assignment)
+                    if result is not False:
+                        return assignment
+                    csp.restore_var_domains(backup_var_domains)
+
+                assignment.remove(var)
+
+        var_ordering_heuristic.backtrack()
+        return False
+
+    assignment = Assignment(csp, assignment={})
+    return backtrack(assignment)
 
 
 if __name__ == '__main__':
     # Choose a CSP problem
-    csp = knights_chessboard_problem(tot_knights=10, dim_chessboard=4)
+    csp_problem = knights_chessboard_problem(tot_knights=10, dim_chessboard=4)
 
     # Inferences
     arc_consistency_inference = ArcConsistencyInference()
+    forward_checking = ForwardChecking()
+    maintaining_arc_consistency = MaintainingArcConsistency()
 
     # Variable Ordering Heuristics
     mrv_var_ordering = MRVVarOrderingHeuristic()
@@ -42,10 +78,10 @@ if __name__ == '__main__':
 
     # Compute solution
     solution = backtracking_search(
-        csp=csp,
-        var_ordering_heuristic=static_var_ordering,
-        value_ordering_heuristic=random_value_ordering,
-        inference=arc_consistency_inference
+        csp=csp_problem,
+        var_ordering_heuristic=mrv_var_ordering,
+        value_ordering_heuristic=least_constraining_value_ordering,
+        inference=maintaining_arc_consistency
     )
 
     print(f'Solution: {solution}')
