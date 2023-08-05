@@ -33,7 +33,7 @@ class Graph(Generic[T]):
         self.add_edge(a_node, b_node, cost)
         self.add_edge(b_node, a_node, cost)
 
-    def adj(self, node: T) -> list[tuple[T]]:
+    def adj(self, node: T) -> list[T]:
         return self._adj[node]
 
     def edge_cost(self, a_node: T, b_node: T) -> int:

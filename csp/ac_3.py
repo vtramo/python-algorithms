@@ -1,9 +1,9 @@
-from csp.csp_components import CSP, Variable
 from queue import Queue
-import copy
+
+from csp.csp_components import CSP, Variable
 
 
-def ac_3(csp: CSP[Variable[any]]) -> bool:
+def ac_3(csp: CSP[Variable[any]], queue: Queue = Queue()) -> bool:
 
     def revise(xi: Variable[any], xj: Variable[any]) -> bool:
         consistent_values = []
@@ -17,9 +17,9 @@ def ac_3(csp: CSP[Variable[any]]) -> bool:
         xi.domain = consistent_values
         return revised
 
-    queue = Queue()
-    for edge in csp.edges():
-        queue.put_nowait(edge)
+    if queue.empty():
+        for edge in csp.edges():
+            queue.put_nowait(edge)
 
     while not queue.empty():
         (xi, xj) = queue.get_nowait()

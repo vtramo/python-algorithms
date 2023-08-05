@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from csp_components import CSP, Variable, Assignment
-from infereces import Inference, ArcConsistencyInference
+from csp_problems import map_colouring_problem, knights_chessboard_problem
+from infereces import Inference, ArcConsistencyInference, ForwardChecking, MaintainingArcConsistency
 from var_selectors import (
     VarOrderingHeuristic,
     MRVVarOrderingHeuristic,
@@ -14,7 +15,6 @@ from value_selectors import (
     StaticValueOrderingHeuristic,
     RandomValueOrderingHeuristic
 )
-from csp_problems import map_colouring_problem, knights_chessboard_problem
 
 
 def backtracking_search(csp: CSP[Variable[any]],
@@ -57,6 +57,8 @@ if __name__ == '__main__':
 
     # Inferences
     arc_consistency_inference = ArcConsistencyInference()
+    forward_checking = ForwardChecking()
+    maintaining_arc_consistency = MaintainingArcConsistency()
 
     # Variable Ordering Heuristics
     mrv_var_ordering = MRVVarOrderingHeuristic()
@@ -72,9 +74,9 @@ if __name__ == '__main__':
     # Compute solution
     solution = backtracking_search(
         csp=csp,
-        var_ordering_heuristic=static_var_ordering,
-        value_ordering_heuristic=random_value_ordering,
-        inference=arc_consistency_inference
+        var_ordering_heuristic=mrv_var_ordering,
+        value_ordering_heuristic=least_constraining_value_ordering,
+        inference=maintaining_arc_consistency
     )
 
     print(f'Solution: {solution}')
