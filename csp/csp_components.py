@@ -16,10 +16,12 @@ class Variable(Generic[D]):
     unary_constraints: list[Callable[[D], bool]] = field(default_factory=lambda: [])
     id: str = ''
     name: str = ''
+    initial_domain: list[D] = field(default_factory=lambda: [])
 
     def __post_init__(self) -> None:
-        self.id = uuid4()
+        self.id = uuid4().__str__()
         self.name = self.id if not self.name else self.name
+        self.initial_domain = copy.deepcopy(self.domain)
 
     def __hash__(self) -> int:
         return self.id.__hash__()
@@ -37,9 +39,9 @@ class Assignment(Generic[D]):
         self._assignment: dict[Variable[D], (list[D], D)] = {}
         self._csp = csp
         for var, value in assignment.items():
-            self.add(var, value)
+            self.set(var, value)
 
-    def add(self, var: Variable[any], value: any) -> None:
+    def set(self, var: Variable[any], value: any) -> None:
         backup_var_domain = copy.deepcopy(var.domain)
         self._assignment[var] = (backup_var_domain, value)
         var.domain = [value]
@@ -65,6 +67,47 @@ class Assignment(Generic[D]):
                 return False
 
         return True
+
+    def is_solution(self) -> bool:
+        if len(self._assignment) != len(self._csp):
+            return False
+
+        for var in self._csp.nodes():
+            if len(var.domain) != 1:
+                return False
+
+            _, var_value = self._assignment[var]
+            for adj in self._csp.adj(var):
+                if len(adj.domain) != 1:
+                    return False
+
+                _, adj_value = self._assignment[adj]
+                constraint_var_adj = self._csp.edge_constraint(var, adj)
+                if not constraint_var_adj(var_value, adj_value):
+                    return False
+
+        return True
+
+    def conflicted_variables(self) -> list[Variable[any]]:
+        if len(self._assignment) == 0:
+            return []
+
+        conflicted_variables = []
+        for var in self._assignment:
+            var_value = var.domain[0]
+            for adj in self._csp.adj(var):
+                constraint_var_adj = self._csp.edge_constraint(var, adj)
+
+                stop = False
+                for adj_value in adj.domain:
+                    if not constraint_var_adj(var_value, adj_value):
+                        conflicted_variables.append(var)
+                        stop = True
+                        break
+                if stop:
+                    break
+
+        return conflicted_variables
 
     def __len__(self) -> int:
         return len(self._assignment)
@@ -95,11 +138,11 @@ class CSP(Graph[Variable[D]]):
                                a_var: Variable[D],
                                b_var: Variable[D],
                                cost: int = 0,
-                               constraint: Callable[[Variable[D], Variable[D]], bool] = lambda: True) -> None:
+                               constraint: Callable[[D, D], bool] = lambda: True) -> None:
         self.add_edge(a_var, b_var, cost, constraint)
         self.add_edge(b_var, a_var, cost, lambda b, a: constraint(a, b))
 
-    def edge_constraint(self, a_var: Variable[D], b_var: Variable[D]) -> Callable[[Variable[D], Variable[D]], bool] | None:
+    def edge_constraint(self, a_var: Variable[D], b_var: Variable[D]) -> Callable[[D, D], bool] | None:
         try:
             edge_info = self._edge_info[(a_var, b_var)]
         except KeyError:

@@ -20,9 +20,9 @@ from var_selectors import (
 def backtracking_search(csp: CSP[Variable[any]],
                         inference: Inference,
                         var_ordering_heuristic: VarOrderingHeuristic,
-                        value_ordering_heuristic: ValueOrderHeuristic) -> Assignment[any]:
+                        value_ordering_heuristic: ValueOrderHeuristic) -> Assignment[Variable[any]] | bool:
 
-    def backtrack(assignment: Assignment) -> dict[Variable[any], any]:
+    def backtrack(assignment: Assignment) -> dict[Variable[any], any] | bool:
         print(f'- {assignment}')
 
         if len(assignment) == len(csp):
@@ -32,7 +32,7 @@ def backtracking_search(csp: CSP[Variable[any]],
         values = value_ordering_heuristic(csp, var, assignment)
         for step, value in enumerate(start=1, iterable=values):
             if assignment.is_consistent_value(var, value):
-                assignment.add(var, value)
+                assignment.set(var, value)
                 backup_var_domains = csp.backup_var_domains()
 
                 inferences = inference(csp, var, assignment)
@@ -47,13 +47,13 @@ def backtracking_search(csp: CSP[Variable[any]],
         var_ordering_heuristic.backtrack()
         return False
 
-    assignment = Assignment(csp, assignment={})
-    return backtrack(assignment)
+    empty_assignment = Assignment(csp, assignment={})
+    return backtrack(empty_assignment)
 
 
 if __name__ == '__main__':
     # Choose a CSP problem
-    csp = knights_chessboard_problem(tot_knights=10, dim_chessboard=4)
+    csp_problem = knights_chessboard_problem(tot_knights=10, dim_chessboard=4)
 
     # Inferences
     arc_consistency_inference = ArcConsistencyInference()
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     # Compute solution
     solution = backtracking_search(
-        csp=csp,
+        csp=csp_problem,
         var_ordering_heuristic=mrv_var_ordering,
         value_ordering_heuristic=least_constraining_value_ordering,
         inference=maintaining_arc_consistency

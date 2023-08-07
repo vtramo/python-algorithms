@@ -1,5 +1,5 @@
 import copy
-from csp.csp_components import CSP, Variable
+from .csp_components import CSP, Variable
 
 
 def map_colouring_problem() -> CSP[Variable[str]]:

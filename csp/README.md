@@ -37,7 +37,7 @@ def backtracking_search(csp: CSP[Variable[any]],
         values = value_ordering_heuristic(csp, var, assignment)
         for step, value in enumerate(start=1, iterable=values):
             if assignment.is_consistent_value(var, value):
-                assignment.add(var, value)
+                assignment.set(var, value)
                 backup_var_domains = csp.backup_var_domains()
 
                 inferences = inference(csp, var, assignment)
