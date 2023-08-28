@@ -10,3 +10,4 @@ This repository contains various Python algorithms that cover a wide range of pr
 - AC-3 Arc Consistency Algorithm
 - Minimax Alpha Beta Pruning Algorithm
 - Min-conflicts Algorithm
+- Markov Decision Processes (Value Iteration)
